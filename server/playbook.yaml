@@ -1,0 +1,6 @@
+name: Distributed Security Sweep
+description: gRPC Distributed check
+targets:
+- 10.0.0.5
+- kube-pod-1
+checks: []

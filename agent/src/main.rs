@@ -36,25 +36,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let out_stream = tokio_stream::wrappers::ReceiverStream::new(rx);
     
     let mut client_clone = client.clone();
-    tokio::spawn(async move {
+    let stream_handle = tokio::spawn(async move {
         let _ = client_clone.stream_results(Request::new(out_stream)).await;
     });
 
     let mut stream = client.connect_agent(request).await?.into_inner();
     println!("Connected! Waiting for jobs...");
 
+    let mut handles = Vec::new();
+
     while let Some(job) = stream.message().await? {
         println!("Received Job {} for target {}", job.job_id, job.target);
         
         if let Ok(playbook) = Playbook::from_yaml_str(&job.playbook_yaml) {
             let tx_clone = tx.clone();
-            tokio::spawn(async move {
+            let handle = tokio::spawn(async move {
                 execute_playbook(playbook, job.target, tx_clone).await;
             });
+            handles.push(handle);
         } else {
             eprintln!("Failed to parse playbook for job {}", job.job_id);
         }
     }
+
+    for handle in handles {
+        let _ = handle.await;
+    }
+
+    // Drop the sender so stream_results task can finish
+    drop(tx);
+
+    // Wait for the results to finish streaming to the server
+    let _ = stream_handle.await;
+    
+    println!("All jobs completed and results streamed successfully.");
 
     Ok(())
 }

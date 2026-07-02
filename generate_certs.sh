@@ -23,6 +23,7 @@ cat > server.ext << EOF
 authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
 keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 [alt_names]
 IP.1 = 127.0.0.1
@@ -37,8 +38,14 @@ echo "Generating Client Certificate..."
 /usr/bin/openssl genrsa -out client.key 2048
 # Generate client CSR
 /usr/bin/openssl req -new -key client.key -out client.csr -subj "/C=US/ST=CA/O=NullStrike/CN=NullStrikeAgent"
+cat > client.ext << EOF
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage = clientAuth
+EOF
+
 # Sign client CSR with CA
-/usr/bin/openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 365 -sha256
+/usr/bin/openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 365 -sha256 -extfile client.ext
 
 echo "Cleaning up..."
 rm *.csr *.ext *.srl

@@ -1,13 +1,18 @@
-name: Distributed Security Sweep
-description: gRPC Distributed check — NullStrike Red Team Engine
+name: MAANG Scale Security Sweep
+description: Full distributed test suite
 targets:
-  - 10.0.0.5
-  - kube-pod-1
+  - localhost
+  - 127.0.0.1
 checks:
-  - type: EphemeralPortSweep
-    ports: [22, 80, 443, 8080, 8443, 3306, 5432, 6379, 9200, 27017]
   - type: HostFileInspector
-    paths: ["/etc/passwd", "/etc/shadow", "/etc/ssh/sshd_config"]
-  - type: IamRoleAssumption
-    role_arn: "arn:aws:iam::123456789012:role/TestRole"
+    paths:
+      - /etc/shadow
+      - /etc/passwd
+      - /tmp/nullstrike_test
   - type: KubernetesEscape
+  - type: EphemeralPortSweep
+    ports:
+      - 22
+      - 80
+      - 443
+      - 50051

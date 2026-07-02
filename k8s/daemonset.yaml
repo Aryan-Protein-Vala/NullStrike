@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nullstrike-agent
+  namespace: security
+  labels:
+    app: nullstrike-agent
+spec:
+  selector:
+    matchLabels:
+      app: nullstrike-agent
+  template:
+    metadata:
+      labels:
+        app: nullstrike-agent
+    spec:
+      hostPID: true # Required for PID namespace analysis
+      containers:
+      - name: agent
+        image: nullstrike/agent:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true # Required for deep host introspection and packet sweeping
+        volumeMounts:
+        - name: host-root
+          mountPath: /host
+          readOnly: true
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+          readOnly: true
+        - name: certs
+          mountPath: /certs
+          readOnly: true
+        env:
+        - name: ORCHESTRATOR_URL
+          value: "https://nullstrike-server.security.svc.cluster.local:50051"
+      volumes:
+      - name: host-root
+        hostPath:
+          path: /
+          type: Directory
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+          type: Socket
+      - name: certs
+        secret:
+          secretName: nullstrike-agent-certs

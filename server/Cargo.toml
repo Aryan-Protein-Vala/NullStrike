@@ -7,7 +7,7 @@ edition = "2021"
 shared = { path = "../shared" }
 tokio = { version = "1.32", features = ["full"] }
 tokio-stream = "0.1"
-tonic = "0.10"
+tonic = { version = "0.10", features = ["tls"] }
 prost = "0.12"
 anyhow = "1.0"
 serde_yaml = "0.9"
@@ -20,6 +20,7 @@ async-trait = "0.1"
 petgraph = "0.6"
 chrono = { version = "0.4", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive"] }
+rusqlite = { version = "0.31", features = ["bundled"] }
 
 [build-dependencies]
 protoc-bin-vendored = "3.2.0"

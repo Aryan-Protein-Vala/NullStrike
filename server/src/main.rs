@@ -3,12 +3,13 @@ mod ui;
 mod report;
 mod grpc;
 mod graph;
+mod db;
 
 use app::{AppMode, AppState};
 use shared::{Playbook, SecurityEvent};
 use grpc::OrchestratorService;
 use shared::pb::null_strike_orchestrator_server::NullStrikeOrchestratorServer;
-use tonic::transport::Server;
+use tonic::transport::{Server, ServerTlsConfig, Identity, Certificate};
 
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
@@ -57,7 +58,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
     };
     
     tokio::spawn(async move {
+        let cert = std::fs::read_to_string("../certs/server.crt").expect("Missing server cert");
+        let key = std::fs::read_to_string("../certs/server.key").expect("Missing server key");
+        let server_identity = Identity::from_pem(cert, key);
+        let ca_cert = std::fs::read_to_string("../certs/ca.crt").expect("Missing CA cert");
+        let client_ca_cert = Certificate::from_pem(ca_cert);
+
+        let tls_config = ServerTlsConfig::new()
+            .identity(server_identity)
+            .client_ca_root(client_ca_cert);
+
         let _ = Server::builder()
+            .tls_config(tls_config).expect("Failed to configure server TLS")
             .add_service(NullStrikeOrchestratorServer::new(service))
             .serve("127.0.0.1:50051".parse().unwrap())
             .await;

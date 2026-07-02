@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 use shared::{SecurityEvent, Severity};
 use crate::graph::AttackGraph;
+use crate::db::Database;
 
 pub enum AppMode {
     Running,
@@ -27,6 +28,9 @@ pub struct AppState {
     /// The in-memory attack graph — updated live as results stream in
     #[serde(skip)]
     pub attack_graph: AttackGraph,
+    /// SQLite persistence engine
+    #[serde(skip)]
+    pub db: Option<Database>,
 }
 
 impl AppState {
@@ -36,6 +40,8 @@ impl AppState {
         for t in &targets {
             attack_graph.add_target(t);
         }
+        let db = Database::new().ok();
+        
         Self {
             mode: AppMode::Running,
             targets,
@@ -48,6 +54,7 @@ impl AppState {
             should_quit: false,
             current_sec_checks: 0,
             attack_graph,
+            db,
         }
     }
 
@@ -64,6 +71,11 @@ impl AppState {
         if result.is_vulnerable() {
             self.attack_graph.add_finding(result.target(), result.check_name(), result.severity());
         }
+        // Persist to database
+        if let Some(ref db) = self.db {
+            let _ = db.insert_finding(&result);
+        }
+        
         self.results.push(result);
         self.completed_checks += 1;
         self.current_sec_checks += 1;

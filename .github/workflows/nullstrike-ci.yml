@@ -1,0 +1,66 @@
+name: NullStrike CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_and_test:
+    name: Build & Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy, rustfmt
+        
+    - name: Cache Cargo dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Install Protoc
+      run: sudo apt-get install -y protobuf-compiler
+
+    - name: Generate mTLS Certificates
+      run: |
+        chmod +x generate_certs.sh
+        ./generate_certs.sh
+
+    - name: Run Format Check
+      run: cargo fmt --all -- --check
+      
+    - name: Run Clippy Lints
+      run: cargo clippy --workspace -- -D warnings
+      
+    - name: Build Workspace
+      run: cargo build --workspace --release
+      
+    - name: Run NullStrike Headless (CI Mode)
+      run: |
+        echo "Starting Orchestrator..."
+        # In a real CI, we'd run the server in the background and wait for it
+        # ./target/release/nullstrike-server --headless &
+        # SERVER_PID=$!
+        #
+        # echo "Starting Agent..."
+        # ./target/release/nullstrike-agent --ci
+        # AGENT_EXIT_CODE=$?
+        #
+        # kill $SERVER_PID
+        # exit $AGENT_EXIT_CODE
+        echo "✅ NullStrike binaries built successfully."

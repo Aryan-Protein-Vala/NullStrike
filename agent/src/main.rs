@@ -1,6 +1,7 @@
 use shared::pb::null_strike_orchestrator_client::NullStrikeOrchestratorClient;
 use shared::pb::{AgentRegistration, SecurityResult};
 use shared::{Playbook, CheckType, SecurityEvent, Severity};
+use tonic::transport::{Channel, ClientTlsConfig, Certificate, Identity};
 use tonic::Request;
 use std::sync::Arc;
 use tokio::sync::mpsc;
@@ -19,10 +20,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Retry loop for connection
     let mut client = loop {
-        match NullStrikeOrchestratorClient::connect("http://127.0.0.1:50051").await {
-            Ok(c) => break c,
-            Err(_) => {
-                println!("Connection refused. Is the server running? Retrying in 5 seconds...");
+        let ca_cert = std::fs::read_to_string("../certs/ca.crt").expect("Missing CA cert");
+        let ca_cert = Certificate::from_pem(ca_cert);
+        let client_cert = std::fs::read_to_string("../certs/client.crt").expect("Missing client cert");
+        let client_key = std::fs::read_to_string("../certs/client.key").expect("Missing client key");
+        let client_identity = Identity::from_pem(client_cert, client_key);
+
+        let tls = ClientTlsConfig::new()
+            .domain_name("127.0.0.1")
+            .ca_certificate(ca_cert)
+            .identity(client_identity);
+        
+        let channel = match Channel::from_static("https://127.0.0.1:50051")
+            .tls_config(tls)
+        {
+            Ok(c) => c,
+            Err(e) => {
+                println!("TLS setup failed: {:?}", e);
+                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                continue;
+            }
+        };
+
+        match channel.connect().await {
+            Ok(ch) => break NullStrikeOrchestratorClient::new(ch),
+            Err(e) => {
+                println!("Connection refused. Is the server running? Retrying in 5 seconds... {:?}", e);
                 tokio::time::sleep(std::time::Duration::from_secs(5)).await;
             }
         }

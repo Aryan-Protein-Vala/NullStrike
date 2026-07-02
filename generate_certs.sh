@@ -9,9 +9,27 @@ cd certs
 echo "Generating Root CA..."
 # Generate CA private key
 /usr/bin/openssl genrsa -out ca.key 2048
-# Generate CA certificate
-/usr/bin/openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt -subj "/C=US/ST=CA/O=NullStrike/CN=NullStrikeRootCA"
+cat > ca.ext << EOF
+[ req ]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_ca
+prompt = no
 
+[ req_distinguished_name ]
+C = US
+ST = CA
+O = NullStrike
+CN = NullStrikeRootCA
+
+[ v3_ca ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:TRUE
+keyUsage = critical, keyCertSign, cRLSign
+EOF
+
+# Generate CA certificate
+/usr/bin/openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt -config ca.ext
 echo "Generating Server Certificate..."
 # Generate server private key
 /usr/bin/openssl genrsa -out server.key 2048

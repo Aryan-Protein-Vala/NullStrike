@@ -1,6 +1,12 @@
 name: Distributed Security Sweep
 description: gRPC Distributed check
 targets:
-- 10.0.0.5
-- kube-pod-1
-checks: []
+  - 10.0.0.5
+  - kube-pod-1
+checks:
+  - type: EphemeralPortSweep
+    ports: [22, 80, 443, 8080, 8443]
+  - type: HostFileInspector
+    paths: ["/etc/passwd", "/etc/shadow", "/etc/ssh/sshd_config"]
+  - type: IamRoleAssumption
+    role_arn: "arn:aws:iam::123456789012:role/TestRole"

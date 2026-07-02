@@ -16,9 +16,17 @@ mod lua_engine;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to NullStrike Orchestrator...");
     
-    // In a real scenario we might retry, but let's just attempt connection.
-    let mut client = NullStrikeOrchestratorClient::connect("http://127.0.0.1:50051").await?;
-    
+    // Retry loop for connection
+    let mut client = loop {
+        match NullStrikeOrchestratorClient::connect("http://127.0.0.1:50051").await {
+            Ok(c) => break c,
+            Err(_) => {
+                println!("Connection refused. Is the server running? Retrying in 5 seconds...");
+                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+            }
+        }
+    };
+
     let request = Request::new(AgentRegistration {
         agent_id: "agent-alpha".into(),
         hostname: "worker-node-1".into(),

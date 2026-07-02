@@ -22,4 +22,5 @@ chrono = "0.4.45"
 serde = { version = "1.0.228", features = ["derive"] }
 
 [build-dependencies]
+protoc-bin-vendored = "3.2.0"
 tonic-build = "0.10"

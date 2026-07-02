@@ -18,4 +18,5 @@ aws-config = "1.1"
 aws-sdk-sts = "1.65.0"
 
 [build-dependencies]
+protoc-bin-vendored = "3.2.0"
 tonic-build = "0.10"

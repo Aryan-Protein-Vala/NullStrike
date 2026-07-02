@@ -1,0 +1,31 @@
+syntax = "proto3";
+package nullstrike;
+
+service NullStrikeOrchestrator {
+    rpc ConnectAgent (AgentRegistration) returns (stream Job);
+    rpc StreamResults (stream SecurityResult) returns (Ack);
+}
+
+message AgentRegistration {
+    string agent_id = 1;
+    string hostname = 2;
+}
+
+message Job {
+    string job_id = 1;
+    string target = 2;
+    string playbook_yaml = 3;
+}
+
+message SecurityResult {
+    string agent_id = 1;
+    string target = 2;
+    string check_name = 3;
+    string severity = 4;
+    bool is_vulnerable = 5;
+    string details = 6;
+}
+
+message Ack {
+    bool received = 1;
+}

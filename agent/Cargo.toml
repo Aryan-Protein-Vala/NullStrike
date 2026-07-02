@@ -1,0 +1,21 @@
+[package]
+name = "nullstrike-agent"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+shared = { path = "../shared" }
+tokio = { version = "1.32", features = ["full"] }
+tokio-stream = "0.1"
+tonic = "0.10"
+prost = "0.12"
+anyhow = "1.0"
+serde_yaml = "0.9"
+sysinfo = "0.39.5"
+mlua = { version = "0.11", features = ["lua54", "vendored", "send"] }
+async-trait = "0.1"
+aws-config = "1.1"
+aws-sdk-sts = "1.65.0"
+
+[build-dependencies]
+tonic-build = "0.10"

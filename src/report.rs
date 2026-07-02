@@ -3,13 +3,56 @@ use crate::auditor::Severity;
 use std::fs;
 use anyhow::Result;
 use comfy_table::{Table, Cell, Color as TColor, Attribute};
+use petgraph::graph::Graph;
+use std::collections::HashMap;
+
+pub fn build_blast_radius_graph(app: &AppState) -> String {
+    let mut graph = Graph::<String, String>::new();
+    let mut node_indices = HashMap::new();
+    
+    // Add nodes for targets
+    for target in &app.targets {
+        let idx = graph.add_node(format!("Target: {}", target));
+        node_indices.insert(target.clone(), idx);
+    }
+    
+    for result in &app.results {
+        if result.is_vulnerable() {
+            let target_idx = *node_indices.get(result.target()).unwrap();
+            let vuln_name = format!("Vuln: {}", result.check_name());
+            let vuln_idx = *node_indices.entry(vuln_name.clone()).or_insert_with(|| graph.add_node(vuln_name));
+            graph.add_edge(target_idx, vuln_idx, format!("{:?}", result.severity()));
+        }
+    }
+    
+    let mut output = String::new();
+    output.push_str("## Structural Blast-Radius Report (Graph BFS)\n\n");
+    
+    if let Some(start_target) = app.targets.first() {
+        if let Some(&start_idx) = node_indices.get(start_target) {
+            output.push_str(&format!("**Exposure chain starting from {}**:\n\n```text\n", start_target));
+            let mut bfs = petgraph::visit::Bfs::new(&graph, start_idx);
+            let mut depth = 0;
+            while let Some(nx) = petgraph::visit::Bfs::next(&mut bfs, &graph) {
+                let node_name = &graph[nx];
+                if node_name.starts_with("Target") {
+                    output.push_str(&format!("{} {}\n", "  ".repeat(depth), node_name));
+                    depth += 1;
+                } else {
+                    output.push_str(&format!("{} -> {} [Exposed]\n", "  ".repeat(depth), node_name));
+                }
+            }
+            output.push_str("```\n\n");
+        }
+    }
+    
+    output
+}
 
 pub fn export_report(app: &AppState) -> Result<()> {
-    // Dump to JSON
     let json_data = serde_json::to_string_pretty(app)?;
     fs::write("report.json", json_data)?;
 
-    // Dump to Markdown
     let mut md = String::new();
     md.push_str("# NullStrike Simulation Report\n\n");
     md.push_str(&format!("**Targets Scope:** {}\n\n", app.targets.join(", ")));
@@ -21,6 +64,8 @@ pub fn export_report(app: &AppState) -> Result<()> {
     md.push_str(&format!("- High: {}\n", counts.get(&Severity::High).unwrap_or(&0)));
     md.push_str(&format!("- Medium: {}\n", counts.get(&Severity::Medium).unwrap_or(&0)));
     md.push_str(&format!("- Low: {}\n\n", counts.get(&Severity::Low).unwrap_or(&0)));
+
+    md.push_str(&build_blast_radius_graph(app));
 
     md.push_str("## Detailed Findings & Remediation\n");
     for res in &app.results {
@@ -55,7 +100,6 @@ pub fn print_stdout_summary(app: &AppState) {
     println!("Total Checks: {}", app.total_checks);
     println!();
     
-    // Print Comfy Table
     let mut table = Table::new();
     table.set_header(vec![
         Cell::new("Severity").add_attribute(Attribute::Bold),

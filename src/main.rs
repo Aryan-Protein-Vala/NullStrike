@@ -2,6 +2,7 @@ mod playbook;
 mod cloud_engine;
 mod network_engine;
 mod host_engine;
+mod lua_engine;
 mod app;
 mod auditor;
 mod report;
@@ -12,7 +13,8 @@ use auditor::{Auditor, SecurityEvent};
 use playbook::{Playbook, CheckType};
 use cloud_engine::IamChainingAuditor;
 use network_engine::EphemeralPortSweepAuditor;
-use host_engine::HostFileInspector;
+use host_engine::HostInspectorAuditor;
+use lua_engine::LuaPluginAuditor;
 
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
@@ -26,6 +28,18 @@ use tokio::time;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    if !std::path::Path::new("custom_check.lua").exists() {
+        std::fs::write("custom_check.lua", "
+function evaluate(context)
+    if context.target == '10.0.0.5' then
+        return true, 'Found vulnerable endpoint exposed to external IP via Lua'
+    else
+        return false, 'Endpoint secure via Lua'
+    end
+end
+")?;
+    }
+
     if !std::path::Path::new("playbook.yaml").exists() {
         let default_playbook = Playbook {
             name: "Default Security Sweep".into(),
@@ -34,7 +48,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             checks: vec![
                 CheckType::IamRoleAssumption { role_arn: "arn:aws:iam::123456789012:role/worker".into() },
                 CheckType::EphemeralPortSweep { ports: vec![22, 80, 443, 8080] },
-                CheckType::HostFileInspector { path: "/etc/shadow".into() },
+                CheckType::HostFileInspector { paths: vec!["/etc/shadow".into(), "/etc/passwd".into()] },
+                CheckType::LuaPlugin { script_path: "custom_check.lua".into() },
             ],
         };
         let yaml = serde_yaml::to_string(&default_playbook)?;
@@ -52,14 +67,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
             CheckType::EphemeralPortSweep { ports } => {
                 auditors.push(Arc::new(EphemeralPortSweepAuditor { ports: ports.clone() }));
             }
-            CheckType::HostFileInspector { path } => {
-                auditors.push(Arc::new(HostFileInspector { path: path.clone() }));
+            CheckType::HostFileInspector { paths } => {
+                auditors.push(Arc::new(HostInspectorAuditor { paths: paths.clone() }));
+            }
+            CheckType::LuaPlugin { script_path } => {
+                auditors.push(Arc::new(LuaPluginAuditor { script_path: script_path.clone() }));
             }
             CheckType::ContainerNamespaceVerification { .. } => {}
         }
     }
 
-    let iterations = 20;
+    let iterations = 10;
     let total_checks = playbook.targets.len() * auditors.len() * iterations;
     if total_checks == 0 {
         println!("No checks to perform.");

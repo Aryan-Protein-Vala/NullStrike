@@ -16,7 +16,8 @@ pub enum CheckType {
     IamRoleAssumption { role_arn: String },
     EphemeralPortSweep { ports: Vec<u16> },
     ContainerNamespaceVerification { namespace: String },
-    HostFileInspector { path: String },
+    HostFileInspector { paths: Vec<String> },
+    LuaPlugin { script_path: String },
 }
 
 impl Playbook {
@@ -42,9 +43,9 @@ impl Playbook {
                         bail!("Port sweep exceeds maximum safe limit of 1000 ports to prevent connection exhaustion.");
                     }
                 }
-                CheckType::HostFileInspector { path } => {
-                    if path.contains("..") {
-                        bail!("Path traversal detected in HostFileInspector path: {}", path);
+                CheckType::LuaPlugin { script_path } => {
+                    if !std::path::Path::new(script_path).exists() {
+                        bail!("Lua plugin script not found: {}", script_path);
                     }
                 }
                 _ => {}

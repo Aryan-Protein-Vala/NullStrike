@@ -55,6 +55,8 @@ impl NullStrikeOrchestrator for OrchestratorService {
                 severity,
                 is_vulnerable: res.is_vulnerable,
                 details: format!("[{}] {}", res.agent_id, res.details),
+                // attack_path is encoded as newline-delimited sub-findings in the details
+                attack_path: res.attack_path,
             };
             
             let _ = self.result_tx.send(event).await;

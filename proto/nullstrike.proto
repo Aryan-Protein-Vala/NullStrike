@@ -24,6 +24,7 @@ message SecurityResult {
     string severity = 4;
     bool is_vulnerable = 5;
     string details = 6;
+    repeated string attack_path = 7;
 }
 
 message Ack {

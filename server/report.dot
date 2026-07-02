@@ -1,0 +1,8 @@
+digraph NullStrike {
+  rankdir=LR;
+  node [shape=box, style=filled, fontname="Courier"];
+
+  n0 [label="10.0.0.5", fillcolor="#1a1a2e", fontcolor="white", shape="ellipse"];
+  n1 [label="kube-pod-1", fillcolor="#1a1a2e", fontcolor="white", shape="ellipse"];
+
+}

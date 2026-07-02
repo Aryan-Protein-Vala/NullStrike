@@ -11,6 +11,7 @@ mod cloud_engine;
 mod network_engine;
 mod host_engine;
 mod lua_engine;
+mod kube_engine;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -101,12 +102,15 @@ async fn execute_playbook(playbook: Playbook, target: String, tx: mpsc::Sender<S
             CheckType::LuaPlugin { script_path } => {
                 auditors.push(Arc::new(lua_engine::LuaPluginAuditor { script_path }));
             }
+            CheckType::KubernetesEscape => {
+                auditors.push(Arc::new(kube_engine::KubernetesEscapeAuditor));
+            }
             _ => {}
         }
     }
     
     for auditor in auditors {
-        if let Ok(SecurityEvent::SimulationAlert { target, check_name, severity, is_vulnerable, details }) = auditor.execute(&target).await {
+        if let Ok(SecurityEvent::SimulationAlert { target, check_name, severity, is_vulnerable, details, attack_path }) = auditor.execute(&target).await {
             let severity_str = match severity {
                 Severity::Critical => "Critical",
                 Severity::High => "High",
@@ -121,6 +125,7 @@ async fn execute_playbook(playbook: Playbook, target: String, tx: mpsc::Sender<S
                 severity: severity_str.to_string(),
                 is_vulnerable,
                 details,
+                attack_path,
             }).await;
         }
     }

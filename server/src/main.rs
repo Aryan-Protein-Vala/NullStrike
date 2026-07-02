@@ -2,6 +2,7 @@ mod app;
 mod ui;
 mod report;
 mod grpc;
+mod graph;
 
 use app::{AppMode, AppState};
 use shared::{Playbook, SecurityEvent};
@@ -106,7 +107,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     if matches!(app.mode, AppMode::Report) || app.completed_checks > 0 {
         let _ = report::export_report(&app);
         report::print_stdout_summary(&app);
-        let _ = report::build_neo4j_graph(&app).await;
     }
 
     Ok(())

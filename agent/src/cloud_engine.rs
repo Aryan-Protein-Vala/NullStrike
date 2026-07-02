@@ -51,6 +51,7 @@ impl Auditor for IamChainingAuditor {
             severity: self.severity(),
             is_vulnerable,
             details,
+            attack_path: vec![],
         })
     }
 }

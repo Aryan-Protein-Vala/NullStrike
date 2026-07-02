@@ -18,6 +18,7 @@ pub enum SecurityEvent {
         severity: Severity,
         is_vulnerable: bool,
         details: String,
+        attack_path: Vec<String>,
     }
 }
 

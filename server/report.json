@@ -10,25 +10,8 @@
         "check_name": "Ephemeral Port Sweep",
         "severity": "High",
         "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
+        "details": "[agent-afe27d28-79c2-4c62-9674-0f5dad09932b] No exposed ports found. TimedOut: [22, 80, 443, 8080, 8443, 3306, 5432, 6379, 9200, 27017]",
+        "attack_path": []
       }
     },
     {
@@ -37,43 +20,8 @@
         "check_name": "Ephemeral Port Sweep",
         "severity": "High",
         "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
+        "details": "[agent-afe27d28-79c2-4c62-9674-0f5dad09932b] No exposed ports found. TimedOut: [22, 80, 443, 8080, 8443, 3306, 5432, 6379, 9200, 27017]",
+        "attack_path": []
       }
     },
     {
@@ -82,16 +30,8 @@
         "check_name": "Host Configuration & Service Audit",
         "severity": "Critical",
         "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
+        "details": "[agent-afe27d28-79c2-4c62-9674-0f5dad09932b] Host configuration and services are secure.",
+        "attack_path": []
       }
     },
     {
@@ -100,43 +40,8 @@
         "check_name": "Host Configuration & Service Audit",
         "severity": "Critical",
         "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
+        "details": "[agent-afe27d28-79c2-4c62-9674-0f5dad09932b] Host configuration and services are secure.",
+        "attack_path": []
       }
     },
     {
@@ -145,16 +50,8 @@
         "check_name": "IAM Blast-Radius Extrapolator",
         "severity": "Critical",
         "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
+        "details": "[agent-afe27d28-79c2-4c62-9674-0f5dad09932b] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })",
+        "attack_path": []
       }
     },
     {
@@ -163,392 +60,47 @@
         "check_name": "IAM Blast-Radius Extrapolator",
         "severity": "Critical",
         "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
+        "details": "[agent-afe27d28-79c2-4c62-9674-0f5dad09932b] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })",
+        "attack_path": []
       }
     },
     {
       "SimulationAlert": {
         "target": "kube-pod-1",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
+        "check_name": "Kubernetes Escape Engine",
+        "severity": "Critical",
         "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
+        "details": "[agent-afe27d28-79c2-4c62-9674-0f5dad09932b] 'kube-pod-1' is properly isolated. All 5 K8s escape vectors are secured.",
+        "attack_path": [
+          "[SAFE] Privileged Container Mode: Not running in a Linux container (no /proc/1/status). Host is a macOS/Windows system.",
+          "[SAFE] Docker Socket Exposure: Docker socket is NOT accessible from this container. Correct isolation.",
+          "[SAFE] K8s Service Account Token: No Kubernetes Service Account Token found. Not running inside a K8s pod, or token projection is disabled.",
+          "[SAFE] Host Path Mount Detection: Cannot read /proc/mounts. Not a Linux system.",
+          "[SAFE] PID Namespace Isolation: Cannot read PID namespace links. Not a Linux system."
+        ]
       }
     },
     {
       "SimulationAlert": {
         "target": "10.0.0.5",
-        "check_name": "Host Configuration & Service Audit",
+        "check_name": "Kubernetes Escape Engine",
         "severity": "Critical",
         "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Ephemeral Port Sweep",
-        "severity": "High",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] No exposed ports found. TimedOut: []"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "10.0.0.5",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "Host Configuration & Service Audit",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Host configuration and services are secure."
-      }
-    },
-    {
-      "SimulationAlert": {
-        "target": "kube-pod-1",
-        "check_name": "IAM Blast-Radius Extrapolator",
-        "severity": "Critical",
-        "is_vulnerable": false,
-        "details": "[agent-alpha] Access Denied or Failed to assume role: DispatchFailure(DispatchFailure { source: ConnectorError { kind: Other(None), source: CredentialsNotLoaded(CredentialsNotLoaded { source: Some(\"no providers in chain provided credentials\") }), connection: Unknown } })"
+        "details": "[agent-afe27d28-79c2-4c62-9674-0f5dad09932b] '10.0.0.5' is properly isolated. All 5 K8s escape vectors are secured.",
+        "attack_path": [
+          "[SAFE] Privileged Container Mode: Not running in a Linux container (no /proc/1/status). Host is a macOS/Windows system.",
+          "[SAFE] Docker Socket Exposure: Docker socket is NOT accessible from this container. Correct isolation.",
+          "[SAFE] K8s Service Account Token: No Kubernetes Service Account Token found. Not running inside a K8s pod, or token projection is disabled.",
+          "[SAFE] Host Path Mount Detection: Cannot read /proc/mounts. Not a Linux system.",
+          "[SAFE] PID Namespace Isolation: Cannot read PID namespace links. Not a Linux system."
+        ]
       }
     }
   ],
-  "start_time": "2026-07-02T10:09:46.902399Z",
-  "end_time": "2026-07-02T10:10:20.872425Z",
-  "total_checks": 60,
-  "completed_checks": 60,
+  "start_time": "2026-07-02T10:40:41.477466Z",
+  "end_time": "2026-07-02T10:40:54.643771Z",
+  "total_checks": 8,
+  "completed_checks": 8,
   "checks_per_second": [
     0,
     0,
@@ -562,7 +114,6 @@
     0,
     0,
     0,
-    6,
     0,
     0,
     0,
@@ -578,7 +129,6 @@
     0,
     0,
     0,
-    6,
     0,
     0,
     0,
@@ -595,7 +145,6 @@
     0,
     0,
     0,
-    6,
     0,
     0,
     0,
@@ -617,7 +166,6 @@
     0,
     0,
     0,
-    6,
     0,
     0,
     0,
@@ -633,7 +181,6 @@
     0,
     0,
     0,
-    6,
     0,
     0,
     0,
@@ -641,6 +188,11 @@
     0,
     0,
     0,
+    0,
+    0,
+    0,
+    0,
+    4,
     0,
     0,
     0,

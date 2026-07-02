@@ -47,6 +47,7 @@ impl Auditor for LuaPluginAuditor {
             severity: self.severity(),
             is_vulnerable: result.0,
             details: result.1,
+            attack_path: vec![],
         })
     }
 }

@@ -59,6 +59,7 @@ impl Auditor for HostInspectorAuditor {
             } else {
                 "Host configuration and services are secure.".into()
             },
+            attack_path: vec![],
         })
     }
 }

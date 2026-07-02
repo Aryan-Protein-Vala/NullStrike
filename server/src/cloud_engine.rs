@@ -36,6 +36,7 @@ impl Auditor for IamChainingAuditor {
             } else {
                 "Role boundary strictly enforced.".into()
             },
+            attack_path: vec![],
         })
     }
 }

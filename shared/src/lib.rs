@@ -20,6 +20,8 @@ pub enum CheckType {
     ContainerNamespaceVerification { namespace: String },
     HostFileInspector { paths: Vec<String> },
     LuaPlugin { script_path: String },
+    /// Kubernetes/container escape detection — runs 5 real checks
+    KubernetesEscape,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
@@ -30,6 +32,21 @@ pub enum Severity {
     Low,
 }
 
+/// A single node in the in-memory Attack Graph
+#[derive(Debug, Clone, Serialize)]
+pub struct AttackNode {
+    pub id: String,
+    pub label: String,
+    pub node_type: AttackNodeType,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+pub enum AttackNodeType {
+    Target,
+    Vulnerability,
+    Pivot, // future: lateral movement
+}
+
 #[derive(Debug, Serialize)]
 pub enum SecurityEvent {
     SimulationAlert {
@@ -38,6 +55,8 @@ pub enum SecurityEvent {
         severity: Severity,
         is_vulnerable: bool,
         details: String,
+        /// Sub-findings for multi-check auditors (e.g. K8s escape has 5 sub-checks)
+        attack_path: Vec<String>,
     },
 }
 

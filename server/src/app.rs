@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use shared::{SecurityEvent, Severity};
+use crate::graph::AttackGraph;
 
 pub enum AppMode {
     Running,
@@ -23,10 +24,18 @@ pub struct AppState {
     pub should_quit: bool,
     #[serde(skip)]
     pub current_sec_checks: u64,
+    /// The in-memory attack graph — updated live as results stream in
+    #[serde(skip)]
+    pub attack_graph: AttackGraph,
 }
 
 impl AppState {
     pub fn new(targets: Vec<String>, total_checks: usize) -> Self {
+        let mut attack_graph = AttackGraph::new();
+        // Pre-seed target nodes
+        for t in &targets {
+            attack_graph.add_target(t);
+        }
         Self {
             mode: AppMode::Running,
             targets,
@@ -38,6 +47,7 @@ impl AppState {
             checks_per_second: vec![0; 100],
             should_quit: false,
             current_sec_checks: 0,
+            attack_graph,
         }
     }
 
@@ -50,6 +60,10 @@ impl AppState {
     }
 
     pub fn handle_result(&mut self, result: SecurityEvent) {
+        // Update the attack graph immediately when a vulnerability is found
+        if result.is_vulnerable() {
+            self.attack_graph.add_finding(result.target(), result.check_name(), result.severity());
+        }
         self.results.push(result);
         self.completed_checks += 1;
         self.current_sec_checks += 1;

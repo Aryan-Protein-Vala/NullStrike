@@ -31,7 +31,13 @@ impl Auditor for IamChainingAuditor {
             Ok(resp) => {
                 is_vulnerable = true;
                 if let Some(creds) = resp.credentials() {
-                    details = format!("CRITICAL: Successfully assumed role {}! Temporary AccessKeyId: {}", self.role_arn, creds.access_key_id());
+                    let key = creds.access_key_id();
+                    let masked_key = if key.len() >= 8 {
+                        format!("{}***{}", &key[..4], &key[key.len()-4..])
+                    } else {
+                        "***".to_string()
+                    };
+                    details = format!("CRITICAL: Successfully assumed role! Masked Key: {}", masked_key);
                 }
             },
             Err(e) => {

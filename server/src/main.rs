@@ -36,9 +36,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let playbook = Playbook::from_yaml_str(&playbook_yaml)?;
     let targets = playbook.targets.clone();
     
-    // We expect agents to run the checks
-    let iterations = 10;
-    let total_checks = playbook.targets.len() * playbook.checks.len() * iterations;
+    // Agents execute checks exactly once per target
+    let total_checks = playbook.targets.len() * playbook.checks.len();
     
     let mut app = AppState::new(playbook.targets.clone(), total_checks);
 

@@ -27,9 +27,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
+    let my_uuid = uuid::Uuid::new_v4().to_string();
+    let my_host = hostname::get().unwrap().into_string().unwrap();
+    let agent_id = format!("agent-{}", my_uuid);
+
     let request = Request::new(AgentRegistration {
-        agent_id: "agent-alpha".into(),
-        hostname: "worker-node-1".into(),
+        agent_id: agent_id.clone(),
+        hostname: my_host,
     });
     
     let (tx, rx) = mpsc::channel::<SecurityResult>(100);
@@ -50,8 +54,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         
         if let Ok(playbook) = Playbook::from_yaml_str(&job.playbook_yaml) {
             let tx_clone = tx.clone();
+            let aid = agent_id.clone();
             let handle = tokio::spawn(async move {
-                execute_playbook(playbook, job.target, tx_clone).await;
+                execute_playbook(playbook, job.target, tx_clone, aid).await;
             });
             handles.push(handle);
         } else {
@@ -74,7 +79,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn execute_playbook(playbook: Playbook, target: String, tx: mpsc::Sender<SecurityResult>) {
+async fn execute_playbook(playbook: Playbook, target: String, tx: mpsc::Sender<SecurityResult>, agent_id: String) {
     let mut auditors: Vec<Arc<dyn auditor::Auditor>> = Vec::new();
     
     let aws_config = aws_config::load_defaults(BehaviorVersion::latest()).await;
@@ -110,7 +115,7 @@ async fn execute_playbook(playbook: Playbook, target: String, tx: mpsc::Sender<S
             };
             
             let _ = tx.send(SecurityResult {
-                agent_id: "agent-alpha".into(),
+                agent_id: agent_id.clone(),
                 target,
                 check_name,
                 severity: severity_str.to_string(),

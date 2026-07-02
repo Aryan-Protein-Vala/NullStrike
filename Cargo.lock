@@ -1340,6 +1340,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hostname"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "617aaa3557aef3810a6369d0a99fac8a080891b68bd9f9812a1eeda0c0730cbd"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "windows-link",
+]
+
+[[package]]
 name = "http"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1922,6 +1933,7 @@ dependencies = [
  "async-trait",
  "aws-config",
  "aws-sdk-sts",
+ "hostname",
  "mlua",
  "prost",
  "protoc-bin-vendored",
@@ -1932,6 +1944,7 @@ dependencies = [
  "tokio-stream",
  "tonic",
  "tonic-build",
+ "uuid",
 ]
 
 [[package]]
@@ -3433,6 +3446,7 @@ version = "1.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf80a72845275afea99e7f2b434723d3bc7e38470fcd1c7ed39a599c73319a53"
 dependencies = [
+ "getrandom 0.4.3",
  "js-sys",
  "wasm-bindgen",
 ]

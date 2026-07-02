@@ -2,7 +2,7 @@ use crate::auditor::Auditor;
 use shared::{SecurityEvent, Severity};
 use anyhow::{Result, Context};
 use async_trait::async_trait;
-use mlua::{Lua, Function};
+use mlua::{Lua, Function, StdLib};
 use std::fs;
 
 pub struct LuaPluginAuditor {
@@ -27,7 +27,9 @@ impl Auditor for LuaPluginAuditor {
         let check_name = self.name();
         
         let result = tokio::task::spawn_blocking(move || -> Result<(bool, String)> {
-            let lua = Lua::new();
+            // Only load the base, table, string, and math libraries. 
+            // Do NOT load StdLib::OS or StdLib::IO
+            let lua = Lua::new_with(StdLib::TABLE | StdLib::STRING | StdLib::MATH, mlua::LuaOptions::new())?;
             lua.load(&script_code).exec()?;
             
             let eval_fn: Function = lua.globals().get("evaluate")?;

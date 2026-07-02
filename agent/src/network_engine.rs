@@ -21,15 +21,27 @@ impl Auditor for EphemeralPortSweepAuditor {
     }
 
     async fn execute(&self, target: &str) -> Result<SecurityEvent> {
+        let mut tasks = Vec::new();
+        
+        let target_str = target.to_string();
+        for port in self.ports.clone() {
+            let addr = format!("{}:{}", target_str, port);
+            let task = tokio::spawn(async move {
+                let res = timeout(Duration::from_millis(150), TcpStream::connect(&addr)).await;
+                (port, res)
+            });
+            tasks.push(task);
+        }
+
         let mut open_ports = Vec::new();
         let mut timeouts = Vec::new();
 
-        for port in &self.ports {
-            let addr = format!("{}:{}", target, port);
-            match timeout(Duration::from_millis(150), TcpStream::connect(&addr)).await {
-                Ok(Ok(_)) => open_ports.push(*port),
+        for task in tasks {
+            let (port, res) = task.await?;
+            match res {
+                Ok(Ok(_)) => open_ports.push(port),
                 Ok(Err(_)) => {}, // Closed
-                Err(_) => timeouts.push(*port), // Timeout
+                Err(_) => timeouts.push(port), // Timeout
             }
         }
 

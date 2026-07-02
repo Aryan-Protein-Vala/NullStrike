@@ -45,13 +45,20 @@ impl Auditor for IamChainingAuditor {
             }
         }
 
-        Ok(SecurityEvent::SimulationAlert {
-            target: target.to_string(),
-            check_name: self.name(),
-            severity: self.severity(),
-            is_vulnerable,
-            details,
-            attack_path: vec![],
-        })
+        if is_vulnerable {
+            Ok(SecurityEvent::SimulationAlert {
+                target: target.to_string(),
+                check_name: self.name(),
+                severity: self.severity(),
+                is_vulnerable: true,
+                details,
+                attack_path: vec![],
+            })
+        } else {
+            Ok(SecurityEvent::Pass {
+                target: target.to_string(),
+                check_name: self.name(),
+            })
+        }
     }
 }

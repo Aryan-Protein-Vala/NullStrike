@@ -19,6 +19,10 @@ pub enum SecurityEvent {
         is_vulnerable: bool,
         details: String,
         attack_path: Vec<String>,
+    },
+    Pass {
+        target: String,
+        check_name: String,
     }
 }
 
@@ -26,30 +30,35 @@ impl SecurityEvent {
     pub fn is_vulnerable(&self) -> bool {
         match self {
             SecurityEvent::SimulationAlert { is_vulnerable, .. } => *is_vulnerable,
+            SecurityEvent::Pass { .. } => false,
         }
     }
     
     pub fn severity(&self) -> &Severity {
         match self {
             SecurityEvent::SimulationAlert { severity, .. } => severity,
+            SecurityEvent::Pass { .. } => &Severity::Low,
         }
     }
 
     pub fn check_name(&self) -> &str {
         match self {
             SecurityEvent::SimulationAlert { check_name, .. } => check_name,
+            SecurityEvent::Pass { check_name, .. } => check_name,
         }
     }
     
     pub fn target(&self) -> &str {
         match self {
             SecurityEvent::SimulationAlert { target, .. } => target,
+            SecurityEvent::Pass { target, .. } => target,
         }
     }
 
     pub fn details(&self) -> &str {
         match self {
             SecurityEvent::SimulationAlert { details, .. } => details,
+            SecurityEvent::Pass { .. } => "Check passed successfully. No vulnerabilities found.",
         }
     }
 }

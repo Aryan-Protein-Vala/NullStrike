@@ -245,13 +245,20 @@ impl Auditor for KubernetesEscapeAuditor {
             format!("'{}' is properly isolated. All 5 K8s escape vectors are secured.", target)
         };
 
-        Ok(SecurityEvent::SimulationAlert {
-            target: target.to_string(),
-            check_name: self.name(),
-            severity: self.severity(),
-            is_vulnerable: any_vulnerable,
-            details: summary,
-            attack_path,
-        })
+        if any_vulnerable {
+            Ok(SecurityEvent::SimulationAlert {
+                target: target.to_string(),
+                check_name: self.name(),
+                severity: self.severity(),
+                is_vulnerable: true,
+                details: summary,
+                attack_path,
+            })
+        } else {
+            Ok(SecurityEvent::Pass {
+                target: target.to_string(),
+                check_name: self.name(),
+            })
+        }
     }
 }

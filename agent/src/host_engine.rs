@@ -49,17 +49,20 @@ impl Auditor for HostInspectorAuditor {
 
         let is_vulnerable = !issues.is_empty();
 
-        Ok(SecurityEvent::SimulationAlert {
-            target: target.to_string(),
-            check_name: self.name(),
-            severity: self.severity(),
-            is_vulnerable,
-            details: if is_vulnerable {
-                issues.join("; ")
-            } else {
-                "Host configuration and services are secure.".into()
-            },
-            attack_path: vec![],
-        })
+        if is_vulnerable {
+            Ok(SecurityEvent::SimulationAlert {
+                target: target.to_string(),
+                check_name: self.name(),
+                severity: self.severity(),
+                is_vulnerable: true,
+                details: issues.join("; "),
+                attack_path: vec![],
+            })
+        } else {
+            Ok(SecurityEvent::Pass {
+                target: target.to_string(),
+                check_name: self.name(),
+            })
+        }
     }
 }

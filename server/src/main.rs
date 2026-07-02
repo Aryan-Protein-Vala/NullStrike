@@ -58,11 +58,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     };
     
     tokio::spawn(async move {
-        let cert = std::fs::read_to_string("../certs/server.crt").expect("Missing server cert");
-        let key = std::fs::read_to_string("../certs/server.key").expect("Missing server key");
+        let cert = include_str!("../../certs/server.crt");
+        let key = include_str!("../../certs/server.key");
         let server_identity = Identity::from_pem(cert, key);
-        let ca_cert = std::fs::read_to_string("../certs/ca.crt").expect("Missing CA cert");
-        let client_ca_cert = Certificate::from_pem(ca_cert);
+        let ca_cert_pem = include_str!("../../certs/ca.crt");
+        let client_ca_cert = Certificate::from_pem(ca_cert_pem);
 
         let tls_config = ServerTlsConfig::new()
             .identity(server_identity)

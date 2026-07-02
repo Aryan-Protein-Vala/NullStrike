@@ -53,13 +53,14 @@ pub fn export_report(app: &AppState) -> Result<()> {
             ));
 
             // Include sub-findings from attack_path if this is a K8s escape or multi-check
-            let shared::SecurityEvent::SimulationAlert { attack_path, .. } = res;
-            if !attack_path.is_empty() {
-                md.push_str("**Sub-Findings (Attack Path):**\n");
-                for step in attack_path {
-                    md.push_str(&format!("- {}\n", step));
+            if let shared::SecurityEvent::SimulationAlert { attack_path, .. } = res {
+                if !attack_path.is_empty() {
+                    md.push_str("**Sub-Findings (Attack Path):**\n");
+                    for step in attack_path {
+                        md.push_str(&format!("- {}\n", step));
+                    }
+                    md.push('\n');
                 }
-                md.push('\n');
             }
 
             md.push_str("**Remediation:**\n");

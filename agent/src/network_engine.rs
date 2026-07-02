@@ -22,12 +22,22 @@ impl Auditor for EphemeralPortSweepAuditor {
 
     async fn execute(&self, target: &str) -> Result<SecurityEvent> {
         let mut tasks = Vec::new();
-        
         let target_str = target.to_string();
+        
+        let ip_addrs: Vec<std::net::IpAddr> = match tokio::net::lookup_host(format!("{}:80", target_str)).await {
+            Ok(mut iter) => iter.map(|socket| socket.ip()).collect(),
+            Err(_) => return Ok(SecurityEvent::Pass { target: target.to_string(), check_name: self.name() })
+        };
+        
+        let target_ip = match ip_addrs.first() {
+            Some(ip) => ip,
+            None => return Ok(SecurityEvent::Pass { target: target.to_string(), check_name: self.name() })
+        };
+
         for port in self.ports.clone() {
-            let addr = format!("{}:{}", target_str, port);
+            let addr = std::net::SocketAddr::new(*target_ip, port);
             let task = tokio::spawn(async move {
-                let res = timeout(Duration::from_millis(150), TcpStream::connect(&addr)).await;
+                let res = timeout(Duration::from_millis(150), TcpStream::connect(addr)).await;
                 (port, res)
             });
             tasks.push(task);
@@ -45,21 +55,21 @@ impl Auditor for EphemeralPortSweepAuditor {
             }
         }
 
-        let is_vulnerable = !open_ports.is_empty();
-
-        let details = if is_vulnerable {
-            format!("Open: {:?} | TimedOut: {:?}", open_ports, timeouts)
+        if !open_ports.is_empty() {
+            let details = format!("Open: {:?} | TimedOut: {:?}", open_ports, timeouts);
+            Ok(SecurityEvent::SimulationAlert {
+                target: target.to_string(),
+                check_name: self.name(),
+                severity: self.severity(),
+                is_vulnerable: true,
+                details,
+                attack_path: vec![],
+            })
         } else {
-            format!("No exposed ports found. TimedOut: {:?}", timeouts)
-        };
-
-        Ok(SecurityEvent::SimulationAlert {
-            target: target.to_string(),
-            check_name: self.name(),
-            severity: self.severity(),
-            is_vulnerable,
-            details,
-            attack_path: vec![],
-        })
+            Ok(SecurityEvent::Pass {
+                target: target.to_string(),
+                check_name: self.name(),
+            })
+        }
     }
 }

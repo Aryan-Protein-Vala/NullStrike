@@ -20,10 +20,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Retry loop for connection
     let mut client = loop {
-        let ca_cert = std::fs::read_to_string("../certs/ca.crt").expect("Missing CA cert");
-        let ca_cert = Certificate::from_pem(ca_cert);
-        let client_cert = std::fs::read_to_string("../certs/client.crt").expect("Missing client cert");
-        let client_key = std::fs::read_to_string("../certs/client.key").expect("Missing client key");
+        let ca_cert_pem = include_str!("../../certs/ca.crt");
+        let ca_cert = Certificate::from_pem(ca_cert_pem);
+        let client_cert = include_str!("../../certs/client.crt");
+        let client_key = include_str!("../../certs/client.key");
         let client_identity = Identity::from_pem(client_cert, client_key);
 
         let tls = ClientTlsConfig::new()
@@ -133,23 +133,47 @@ async fn execute_playbook(playbook: Playbook, target: String, tx: mpsc::Sender<S
     }
     
     for auditor in auditors {
-        if let Ok(SecurityEvent::SimulationAlert { target, check_name, severity, is_vulnerable, details, attack_path }) = auditor.execute(&target).await {
-            let severity_str = match severity {
-                Severity::Critical => "Critical",
-                Severity::High => "High",
-                Severity::Medium => "Medium",
-                Severity::Low => "Low",
-            };
-            
-            let _ = tx.send(SecurityResult {
-                agent_id: agent_id.clone(),
-                target,
-                check_name,
-                severity: severity_str.to_string(),
-                is_vulnerable,
-                details,
-                attack_path,
-            }).await;
+        match auditor.execute(&target).await {
+            Ok(SecurityEvent::SimulationAlert { target, check_name, severity, is_vulnerable, details, attack_path }) => {
+                let severity_str = match severity {
+                    Severity::Critical => "Critical",
+                    Severity::High => "High",
+                    Severity::Medium => "Medium",
+                    Severity::Low => "Low",
+                };
+                
+                let _ = tx.send(SecurityResult {
+                    agent_id: agent_id.clone(),
+                    target,
+                    check_name,
+                    severity: severity_str.to_string(),
+                    is_vulnerable,
+                    details,
+                    attack_path,
+                }).await;
+            }
+            Ok(SecurityEvent::Pass { target, check_name }) => {
+                let _ = tx.send(SecurityResult {
+                    agent_id: agent_id.clone(),
+                    target,
+                    check_name,
+                    severity: "Low".to_string(),
+                    is_vulnerable: false,
+                    details: "Check passed successfully. No vulnerabilities found.".to_string(),
+                    attack_path: vec![],
+                }).await;
+            }
+            Err(e) => {
+                let _ = tx.send(SecurityResult {
+                    agent_id: agent_id.clone(),
+                    target: target.clone(),
+                    check_name: auditor.name(),
+                    severity: "Low".to_string(),
+                    is_vulnerable: false,
+                    details: format!("Check failed to execute: {}", e),
+                    attack_path: vec![],
+                }).await;
+            }
         }
     }
 }

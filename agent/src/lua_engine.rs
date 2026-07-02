@@ -4,6 +4,13 @@ use anyhow::{Result, Context};
 use async_trait::async_trait;
 use mlua::{Lua, Function, StdLib};
 use std::fs;
+use std::cell::RefCell;
+
+thread_local! {
+    static LUA_VM: RefCell<Lua> = RefCell::new(
+        Lua::new_with(StdLib::TABLE | StdLib::STRING | StdLib::MATH, mlua::LuaOptions::new()).expect("Failed to init Lua VM")
+    );
+}
 
 pub struct LuaPluginAuditor {
     pub script_path: String,
@@ -27,27 +34,34 @@ impl Auditor for LuaPluginAuditor {
         let check_name = self.name();
         
         let result = tokio::task::spawn_blocking(move || -> Result<(bool, String)> {
-            // Only load the base, table, string, and math libraries. 
-            // Do NOT load StdLib::OS or StdLib::IO
-            let lua = Lua::new_with(StdLib::TABLE | StdLib::STRING | StdLib::MATH, mlua::LuaOptions::new())?;
-            lua.load(&script_code).exec()?;
-            
-            let eval_fn: Function = lua.globals().get("evaluate")?;
-            
-            let table = lua.create_table()?;
-            table.set("target", target_clone)?;
-            
-            let (is_vuln, details): (bool, String) = eval_fn.call(table)?;
-            Ok((is_vuln, details))
+            LUA_VM.with(|lua_ref| {
+                let lua = lua_ref.borrow();
+                lua.load(&script_code).exec()?;
+                
+                let eval_fn: Function = lua.globals().get("evaluate")?;
+                
+                let table = lua.create_table()?;
+                table.set("target", target_clone)?;
+                
+                let (is_vuln, details): (bool, String) = eval_fn.call(table)?;
+                Ok((is_vuln, details))
+            })
         }).await??;
 
-        Ok(SecurityEvent::SimulationAlert {
-            target: target.to_string(),
-            check_name,
-            severity: self.severity(),
-            is_vulnerable: result.0,
-            details: result.1,
-            attack_path: vec![],
-        })
+        if result.0 {
+            Ok(SecurityEvent::SimulationAlert {
+                target: target.to_string(),
+                check_name,
+                severity: self.severity(),
+                is_vulnerable: true,
+                details: result.1,
+                attack_path: vec![],
+            })
+        } else {
+            Ok(SecurityEvent::Pass {
+                target: target.to_string(),
+                check_name,
+            })
+        }
     }
 }

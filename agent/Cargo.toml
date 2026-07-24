@@ -10,6 +10,8 @@ tokio-stream = "0.1"
 tonic = { version = "0.10", features = ["tls", "tls-roots"] }
 prost = "0.12"
 anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 serde_yaml = "0.9"
 sysinfo = "0.39.5"
 mlua = { version = "0.11", features = ["lua54", "vendored", "send"] }
@@ -19,6 +21,12 @@ aws-sdk-sts = "1.65.0"
 uuid = { version = "1.23.4", features = ["v4"] }
 hostname = "0.4.2"
 reqwest = { version = "0.11", features = ["json"] }
+rustls = "0.21"
+webpki-roots = "0.25"
+x509-parser = "0.16"
+chrono = { version = "0.4", features = ["serde"] }
+lettre = { version = "0.11", features = ["tokio1-native-tls", "builder"] }
+clap = { version = "4", features = ["derive"] }
 
 [build-dependencies]
 protoc-bin-vendored = "3.2.0"

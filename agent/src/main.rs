@@ -6,17 +6,194 @@ use tonic::Request;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use aws_config::BehaviorVersion;
+use clap::Parser;
 
 mod auditor;
+mod cli;
 mod cloud_engine;
 mod network_engine;
 mod host_engine;
 mod lua_engine;
 mod kube_engine;
 mod api_engine;
+mod subdomain_audit;
+mod port_prober;
+mod endpoint_inspector;
+mod input_reflection_detector;
+mod header_auditor;
+mod tls_inspector;
+mod credential_leak_checker;
+mod notification;
+mod report_aggregator;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let cli_args = cli::Cli::parse();
+
+    match cli_args.command {
+        Some(cli::Commands::Audit { target, webhook, output }) => {
+            run_standalone_audit(&target, webhook.as_deref(), &output).await?;
+        }
+        Some(cli::Commands::Report { json: _, file }) => {
+            print_report(&file)?;
+        }
+        Some(cli::Commands::Notify { id, webhook, file }) => {
+            send_finding_notification(id, &webhook, &file).await?;
+        }
+        Some(cli::Commands::Connect) | None => {
+            run_grpc_mode().await?;
+        }
+    }
+
+    Ok(())
+}
+
+/// Standalone audit mode — runs all checks locally without the gRPC orchestrator.
+async fn run_standalone_audit(
+    target: &str,
+    webhook: Option<&str>,
+    output: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("🔍 NullStrike Standalone Audit — Target: {}", target);
+    println!("────────────────────────────────────────────");
+
+    let my_uuid = uuid::Uuid::new_v4().to_string();
+    let my_host = hostname::get().unwrap().into_string().unwrap();
+    let agent_id = format!("agent-{}", my_uuid);
+
+    let mut report = report_aggregator::ReportAggregator::new(agent_id.clone(), my_host);
+
+    // Build all auditors for a comprehensive sweep
+    let auditors: Vec<Arc<dyn auditor::Auditor>> = vec![
+        Arc::new(subdomain_audit::SubdomainAuditor {
+            wordlist: vec![
+                "www", "api", "dev", "staging", "admin", "mail", "ftp",
+                "test", "beta", "internal", "vpn", "cdn", "app",
+            ]
+            .into_iter()
+            .map(String::from)
+            .collect(),
+        }),
+        Arc::new(port_prober::PortProber::default_ports()),
+        Arc::new(endpoint_inspector::EndpointInspector::new(vec![])), // uses defaults
+        Arc::new(header_auditor::HeaderAuditor::new()),
+        Arc::new(tls_inspector::TlsInspector::new()),
+        Arc::new(credential_leak_checker::CredentialLeakChecker::new()),
+        Arc::new(input_reflection_detector::InputReflectionDetector::new(
+            vec!["/".to_string(), "/search".to_string(), "/api".to_string()],
+        )),
+    ];
+
+    // Optionally set up webhook notifications for critical findings
+    let notifier = webhook.map(|url| {
+        notification::Notifier::new(notification::NotifyChannel::Webhook {
+            url: url.to_string(),
+        })
+    });
+
+    for auditor_instance in &auditors {
+        println!("  ▸ Running: {}", auditor_instance.name());
+        match auditor_instance.execute(target).await {
+            Ok(event) => {
+                // If critical and we have a notifier, fire alert
+                if let Some(ref n) = notifier {
+                    if event.is_vulnerable() {
+                        if let Err(e) = n.notify(&event).await {
+                            eprintln!("    ⚠ Notification failed: {}", e);
+                        }
+                    }
+                }
+
+                // Print inline result
+                match &event {
+                    SecurityEvent::SimulationAlert {
+                        check_name,
+                        severity,
+                        details,
+                        attack_path,
+                        ..
+                    } => {
+                        let icon = match severity {
+                            Severity::Critical => "🔴",
+                            Severity::High => "🟠",
+                            Severity::Medium => "🟡",
+                            Severity::Low => "🔵",
+                        };
+                        println!("    {} [{:?}] {}", icon, severity, details);
+                        for step in attack_path.iter().take(5) {
+                            println!("      └─ {}", step);
+                        }
+                        if attack_path.len() > 5 {
+                            println!("      └─ ... and {} more", attack_path.len() - 5);
+                        }
+                    }
+                    SecurityEvent::Pass { check_name, .. } => {
+                        println!("    ✅ {} — all clear", check_name);
+                    }
+                }
+
+                report.add_event(&event);
+            }
+            Err(e) => {
+                eprintln!("    ❌ {} failed: {}", auditor_instance.name(), e);
+            }
+        }
+    }
+
+    println!("────────────────────────────────────────────");
+    report.export_json(output)?;
+    println!("✅ Audit complete. {} checks executed.", auditors.len());
+
+    Ok(())
+}
+
+/// Print a previously saved JSON report to stdout.
+fn print_report(file: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let content = std::fs::read_to_string(file)?;
+    let report: serde_json::Value = serde_json::from_str(&content)?;
+    println!("{}", serde_json::to_string_pretty(&report)?);
+    Ok(())
+}
+
+/// Send a webhook notification for a specific finding by its index in the report.
+async fn send_finding_notification(
+    id: usize,
+    webhook: &str,
+    file: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let content = std::fs::read_to_string(file)?;
+    let report: serde_json::Value = serde_json::from_str(&content)?;
+
+    let findings = report["findings"]
+        .as_array()
+        .ok_or("No findings array in report")?;
+
+    let finding = findings
+        .get(id)
+        .ok_or(format!("Finding index {} not found (total: {})", id, findings.len()))?;
+
+    let notifier = notification::Notifier::new(notification::NotifyChannel::Webhook {
+        url: webhook.to_string(),
+    });
+
+    // Reconstruct a SecurityEvent for notification
+    let event = SecurityEvent::SimulationAlert {
+        target: finding["target"].as_str().unwrap_or("unknown").to_string(),
+        check_name: finding["check_name"].as_str().unwrap_or("unknown").to_string(),
+        severity: Severity::Critical,
+        is_vulnerable: true,
+        details: finding["details"].as_str().unwrap_or("").to_string(),
+        attack_path: vec![],
+    };
+
+    notifier.notify(&event).await?;
+    println!("📨 Notification sent for finding #{}", id);
+
+    Ok(())
+}
+
+/// gRPC orchestrator mode — the original NullStrike distributed agent behavior.
+async fn run_grpc_mode() -> Result<(), Box<dyn std::error::Error>> {
     println!("Connecting to NullStrike Orchestrator...");
     
     // Retry loop for connection
@@ -132,12 +309,33 @@ async fn execute_playbook(playbook: Playbook, target: String, tx: mpsc::Sender<S
             CheckType::ApiDiscovery { subdomains, endpoints } => {
                 auditors.push(Arc::new(api_engine::ApiDiscoveryAuditor::new(subdomains, endpoints)));
             }
+            CheckType::SubdomainAudit { wordlist } => {
+                auditors.push(Arc::new(subdomain_audit::SubdomainAuditor { wordlist }));
+            }
+            CheckType::PortProbe { ports } => {
+                auditors.push(Arc::new(port_prober::PortProber::new(ports)));
+            }
+            CheckType::EndpointInspection { paths } => {
+                auditors.push(Arc::new(endpoint_inspector::EndpointInspector::new(paths)));
+            }
+            CheckType::InputReflection { paths } => {
+                auditors.push(Arc::new(input_reflection_detector::InputReflectionDetector::new(paths)));
+            }
+            CheckType::HeaderAudit => {
+                auditors.push(Arc::new(header_auditor::HeaderAuditor::new()));
+            }
+            CheckType::TlsInspection => {
+                auditors.push(Arc::new(tls_inspector::TlsInspector::new()));
+            }
+            CheckType::CredentialLeakCheck => {
+                auditors.push(Arc::new(credential_leak_checker::CredentialLeakChecker::new()));
+            }
             _ => {}
         }
     }
     
-    for auditor in auditors {
-        match auditor.execute(&target).await {
+    for auditor_instance in auditors {
+        match auditor_instance.execute(&target).await {
             Ok(SecurityEvent::SimulationAlert { target, check_name, severity, is_vulnerable, details, attack_path }) => {
                 let severity_str = match severity {
                     Severity::Critical => "Critical",
@@ -171,7 +369,7 @@ async fn execute_playbook(playbook: Playbook, target: String, tx: mpsc::Sender<S
                 let _ = tx.send(SecurityResult {
                     agent_id: agent_id.clone(),
                     target: target.clone(),
-                    check_name: auditor.name(),
+                    check_name: auditor_instance.name(),
                     severity: "Low".to_string(),
                     is_vulnerable: false,
                     details: format!("Check failed to execute: {}", e),

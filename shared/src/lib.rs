@@ -23,6 +23,20 @@ pub enum CheckType {
     /// Kubernetes/container escape detection — runs 5 real checks
     KubernetesEscape,
     ApiDiscovery { subdomains: Vec<String>, endpoints: Vec<String> },
+    /// DNS subdomain enumeration from a wordlist
+    SubdomainAudit { wordlist: Vec<String> },
+    /// TCP port probe for common services
+    PortProbe { ports: Vec<u16> },
+    /// HTTP endpoint discovery for common paths
+    EndpointInspection { paths: Vec<String> },
+    /// Detects input reflection (output encoding issues)
+    InputReflection { paths: Vec<String> },
+    /// HTTP security header audit
+    HeaderAudit,
+    /// TLS certificate & cipher inspection
+    TlsInspection,
+    /// Checks for exposed sensitive files (.env, .git/config, etc.)
+    CredentialLeakCheck,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]

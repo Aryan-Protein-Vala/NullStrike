@@ -33,6 +33,10 @@ mod header_integrity_checker;
 mod json_schema_inspector;
 mod redirect_topology_mapper;
 mod canary_reflection_validator;
+mod temporal_risk_scoring_engine;
+mod live_attack_graph_builder;
+mod predictive_drift_detector;
+mod cross_cloud_orchestrator_hub;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

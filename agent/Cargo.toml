@@ -29,6 +29,8 @@ lettre = { version = "0.11", features = ["tokio1-native-tls", "builder"] }
 clap = { version = "4", features = ["derive"] }
 tera = "1"
 chromiumoxide = { version = "0.5.7", features = ["tokio-runtime"] }
+dashmap = "5.5"
+flume = "0.11"
 
 [build-dependencies]
 protoc-bin-vendored = "3.2.0"

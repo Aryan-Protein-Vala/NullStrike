@@ -13,6 +13,7 @@ mod network_engine;
 mod host_engine;
 mod lua_engine;
 mod kube_engine;
+mod api_engine;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -127,6 +128,9 @@ async fn execute_playbook(playbook: Playbook, target: String, tx: mpsc::Sender<S
             }
             CheckType::KubernetesEscape => {
                 auditors.push(Arc::new(kube_engine::KubernetesEscapeAuditor));
+            }
+            CheckType::ApiDiscovery { subdomains, endpoints } => {
+                auditors.push(Arc::new(api_engine::ApiDiscoveryAuditor::new(subdomains, endpoints)));
             }
             _ => {}
         }

@@ -22,6 +22,7 @@ pub enum CheckType {
     LuaPlugin { script_path: String },
     /// Kubernetes/container escape detection — runs 5 real checks
     KubernetesEscape,
+    ApiDiscovery { subdomains: Vec<String>, endpoints: Vec<String> },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]

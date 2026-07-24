@@ -10,6 +10,15 @@ checks:
       - /etc/passwd
       - /tmp/nullstrike_test
   - type: KubernetesEscape
+  - type: ApiDiscovery
+    subdomains:
+      - api
+      - dev
+      - staging
+    endpoints:
+      - /api/users
+      - /api/admin
+      - /health
   - type: EphemeralPortSweep
     ports:
       - 22

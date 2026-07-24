@@ -37,6 +37,12 @@ pub enum CheckType {
     TlsInspection,
     /// Checks for exposed sensitive files (.env, .git/config, etc.)
     CredentialLeakCheck,
+    /// SQL injection timing/error symptom detection (read-only)
+    SqliSymptomDetection { paths: Vec<String> },
+    /// GraphQL introspection query to map API surface
+    GraphqlIntrospection,
+    /// Run all audit modules in sequence
+    FullAudit,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]

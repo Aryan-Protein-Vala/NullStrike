@@ -24,7 +24,10 @@ mod header_auditor;
 mod tls_inspector;
 mod credential_leak_checker;
 mod notification;
-mod report_aggregator;
+mod poc_reporter;
+mod sqli_symptom_detector;
+mod graphql_introspector;
+mod headless_dom_analyzer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -61,7 +64,7 @@ async fn run_standalone_audit(
     let my_host = hostname::get().unwrap().into_string().unwrap();
     let agent_id = format!("agent-{}", my_uuid);
 
-    let mut report = report_aggregator::ReportAggregator::new(agent_id.clone(), my_host);
+    let mut report = poc_reporter::PocReporter::new(agent_id.clone(), my_host);
 
     // Build all auditors for a comprehensive sweep
     let auditors: Vec<Arc<dyn auditor::Auditor>> = vec![
@@ -82,6 +85,9 @@ async fn run_standalone_audit(
         Arc::new(input_reflection_detector::InputReflectionDetector::new(
             vec!["/".to_string(), "/search".to_string(), "/api".to_string()],
         )),
+        Arc::new(sqli_symptom_detector::SqliSymptomDetector::new(vec![])),
+        Arc::new(graphql_introspector::GraphqlIntrospector::new()),
+        Arc::new(headless_dom_analyzer::HeadlessDomAnalyzer::new(vec![])),
     ];
 
     // Optionally set up webhook notifications for critical findings
@@ -142,6 +148,12 @@ async fn run_standalone_audit(
 
     println!("────────────────────────────────────────────");
     report.export_json(output)?;
+    
+    let html_output = output.replace(".json", ".html");
+    if html_output != output {
+        report.export_html(&html_output)?;
+    }
+    
     println!("✅ Audit complete. {} checks executed.", auditors.len());
 
     Ok(())
@@ -329,6 +341,24 @@ async fn execute_playbook(playbook: Playbook, target: String, tx: mpsc::Sender<S
             }
             CheckType::CredentialLeakCheck => {
                 auditors.push(Arc::new(credential_leak_checker::CredentialLeakChecker::new()));
+            }
+            CheckType::SqliSymptomDetection { paths } => {
+                auditors.push(Arc::new(sqli_symptom_detector::SqliSymptomDetector::new(paths)));
+            }
+            CheckType::GraphqlIntrospection => {
+                auditors.push(Arc::new(graphql_introspector::GraphqlIntrospector::new()));
+            }
+            CheckType::FullAudit => {
+                auditors.push(Arc::new(subdomain_audit::SubdomainAuditor { wordlist: vec!["www".into(), "api".into()] }));
+                auditors.push(Arc::new(port_prober::PortProber::default_ports()));
+                auditors.push(Arc::new(endpoint_inspector::EndpointInspector::new(vec![])));
+                auditors.push(Arc::new(header_auditor::HeaderAuditor::new()));
+                auditors.push(Arc::new(tls_inspector::TlsInspector::new()));
+                auditors.push(Arc::new(credential_leak_checker::CredentialLeakChecker::new()));
+                auditors.push(Arc::new(input_reflection_detector::InputReflectionDetector::new(vec!["/".into()])));
+                auditors.push(Arc::new(sqli_symptom_detector::SqliSymptomDetector::new(vec![])));
+                auditors.push(Arc::new(graphql_introspector::GraphqlIntrospector::new()));
+                auditors.push(Arc::new(headless_dom_analyzer::HeadlessDomAnalyzer::new(vec![])));
             }
             _ => {}
         }

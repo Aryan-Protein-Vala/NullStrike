@@ -7,10 +7,11 @@ use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::time::timeout;
 
-/// Well-known service ports for common services.
+/// Well-known service ports — top 30 for comprehensive coverage.
 const DEFAULT_PORTS: &[u16] = &[
-    21, 22, 23, 25, 53, 80, 110, 143, 443, 445,
-    993, 995, 3306, 3389, 5432, 6379, 8080, 8443, 9090, 9200,
+    21, 22, 23, 25, 53, 80, 110, 111, 135, 139, 143, 443, 445,
+    993, 995, 1433, 1521, 2049, 3306, 3389, 5432, 5900, 6379,
+    8080, 8443, 9090, 9200, 11211, 27017, 50051,
 ];
 
 /// Probes TCP ports to determine which services are listening.
@@ -39,19 +40,29 @@ impl PortProber {
             53 => "DNS",
             80 => "HTTP",
             110 => "POP3",
+            111 => "rpcbind",
+            135 => "MSRPC",
+            139 => "NetBIOS",
             143 => "IMAP",
             443 => "HTTPS",
             445 => "SMB",
             993 => "IMAPS",
             995 => "POP3S",
+            1433 => "MSSQL",
+            1521 => "Oracle",
+            2049 => "NFS",
             3306 => "MySQL",
             3389 => "RDP",
             5432 => "PostgreSQL",
+            5900 => "VNC",
             6379 => "Redis",
             8080 => "HTTP-Alt",
             8443 => "HTTPS-Alt",
             9090 => "Prometheus",
             9200 => "Elasticsearch",
+            11211 => "Memcached",
+            27017 => "MongoDB",
+            50051 => "gRPC",
             _ => "Unknown",
         }
     }
@@ -95,8 +106,31 @@ impl Auditor for PortProber {
         for &port in &self.ports {
             let addr = SocketAddr::new(target_ip, port);
             tasks.push(tokio::spawn(async move {
-                let result = timeout(Duration::from_millis(200), TcpStream::connect(addr)).await;
-                (port, result)
+                let result = timeout(Duration::from_secs(3), TcpStream::connect(addr)).await;
+                match result {
+                    Ok(Ok(mut stream)) => {
+                        // Attempt banner grab — read whatever the server sends within 500ms
+                        use tokio::io::AsyncReadExt;
+                        let mut banner_buf = vec![0u8; 256];
+                        let banner = match timeout(
+                            Duration::from_millis(500),
+                            stream.read(&mut banner_buf),
+                        )
+                        .await
+                        {
+                            Ok(Ok(n)) if n > 0 => {
+                                String::from_utf8_lossy(&banner_buf[..n])
+                                    .trim()
+                                    .chars()
+                                    .take(80)
+                                    .collect::<String>()
+                            }
+                            _ => String::new(),
+                        };
+                        (port, true, banner)
+                    }
+                    _ => (port, false, String::new()),
+                }
             }));
         }
 
@@ -104,14 +138,18 @@ impl Auditor for PortProber {
         let mut open_count = 0u32;
 
         for task in tasks {
-            if let Ok((port, result)) = task.await {
-                match result {
-                    Ok(Ok(_)) => {
-                        open_count += 1;
-                        let svc = Self::port_service_hint(port);
+            if let Ok((port, is_open, banner)) = task.await {
+                if is_open {
+                    open_count += 1;
+                    let svc = Self::port_service_hint(port);
+                    if banner.is_empty() {
                         attack_path.push(format!("OPEN: port {} ({}) on {}", port, svc, target));
+                    } else {
+                        attack_path.push(format!(
+                            "OPEN: port {} ({}) on {} | Banner: {}",
+                            port, svc, target, banner
+                        ));
                     }
-                    _ => {} // closed or timed out — not reported
                 }
             }
         }

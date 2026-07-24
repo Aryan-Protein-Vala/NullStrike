@@ -121,6 +121,28 @@ impl Auditor for HeaderAuditor {
             }
         }
 
+        // Check Set-Cookie flags (HttpOnly, Secure, SameSite)
+        for cookie_val in headers.get_all("set-cookie").iter() {
+            if let Ok(cookie_str) = cookie_val.to_str() {
+                let cookie_lower = cookie_str.to_lowercase();
+                
+                if !cookie_lower.contains("httponly") {
+                    attack_path.push(format!(
+                        "COOKIE_FLAG_MISSING: Set-Cookie missing HttpOnly flag: {}",
+                        cookie_str.split(';').next().unwrap_or(cookie_str)
+                    ));
+                    is_vulnerable = true;
+                }
+                
+                if !cookie_lower.contains("secure") {
+                    attack_path.push(format!(
+                        "COOKIE_FLAG_MISSING: Set-Cookie missing Secure flag: {}",
+                        cookie_str.split(';').next().unwrap_or(cookie_str)
+                    ));
+                    is_vulnerable = true;
+                }
+            }
+        }
         if !attack_path.is_empty() {
             let missing_count = attack_path
                 .iter()

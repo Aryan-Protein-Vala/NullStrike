@@ -37,14 +37,18 @@ mod temporal_risk_scoring_engine;
 mod live_attack_graph_builder;
 mod predictive_drift_detector;
 mod cross_cloud_orchestrator_hub;
+mod cloud_hybrid_aggregator;
+mod header_fingerprint_validator;
+mod lateral_trust_mapper;
+mod temporal_drift_scorer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli_args = cli::Cli::parse();
 
     match cli_args.command {
-        Some(cli::Commands::Audit { target, webhook, output }) => {
-            run_standalone_audit(&target, webhook.as_deref(), &output).await?;
+        Some(cli::Commands::Audit { target, webhook, output, profile }) => {
+            run_standalone_audit(&target, webhook.as_deref(), &output, profile).await?;
         }
         Some(cli::Commands::Report { json: _, file }) => {
             print_report(&file)?;
@@ -65,6 +69,7 @@ async fn run_standalone_audit(
     target: &str,
     webhook: Option<&str>,
     output: &str,
+    profile: cli::EngineProfile,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🔍 NullStrike Standalone Audit — Target: {}", target);
     println!("────────────────────────────────────────────");
@@ -75,8 +80,7 @@ async fn run_standalone_audit(
 
     let mut report = poc_reporter::PocReporter::new(agent_id.clone(), my_host);
 
-    // Build all auditors for a comprehensive sweep
-    let auditors: Vec<Arc<dyn auditor::Auditor>> = vec![
+    let mut auditors: Vec<Arc<dyn auditor::Auditor>> = vec![
         Arc::new(subdomain_audit::SubdomainAuditor {
             wordlist: vec![
                 "www", "api", "dev", "staging", "admin", "mail", "ftp",
@@ -96,8 +100,11 @@ async fn run_standalone_audit(
         )),
         Arc::new(sqli_symptom_detector::SqliSymptomDetector::new(vec![])),
         Arc::new(graphql_introspector::GraphqlIntrospector::new()),
-        Arc::new(headless_dom_analyzer::HeadlessDomAnalyzer::new(vec![])),
     ];
+
+    if matches!(profile, cli::EngineProfile::WebDast | cli::EngineProfile::Full) {
+        auditors.push(Arc::new(headless_dom_analyzer::HeadlessDomAnalyzer::new(vec![])));
+    }
 
     // Optionally set up webhook notifications for critical findings
     let notifier = webhook.map(|url| {
@@ -106,19 +113,30 @@ async fn run_standalone_audit(
         })
     });
 
-    for auditor_instance in &auditors {
-        println!("  ▸ Running: {}", auditor_instance.name());
-        match auditor_instance.execute(target).await {
-            Ok(event) => {
-                // If critical and we have a notifier, fire alert
-                if let Some(ref n) = notifier {
-                    if event.is_vulnerable() {
-                        if let Err(e) = n.notify(&event).await {
-                            eprintln!("    ⚠ Notification failed: {}", e);
-                        }
-                    }
-                }
+    let semaphore = Arc::new(tokio::sync::Semaphore::new(4));
+    let mut join_handles = vec![];
+    let (tx, mut rx) = mpsc::channel(100);
 
+    for auditor_instance in auditors.clone() {
+        let permit = semaphore.clone().acquire_owned().await.unwrap();
+        let target_clone = target.to_string();
+        let tx_clone = tx.clone();
+        let name = auditor_instance.name().to_string();
+        
+        println!("  ▸ Queuing: {}", name);
+        
+        join_handles.push(tokio::spawn(async move {
+            let _permit = permit; // Hold permit for duration of execution
+            let res = auditor_instance.execute(&target_clone).await;
+            let _ = tx_clone.send((name, res)).await;
+        }));
+    }
+    
+    drop(tx); // Close the channel from the main thread
+
+    while let Some((name, result)) = rx.recv().await {
+        match result {
+            Ok(event) => {
                 // Print inline result
                 match &event {
                     SecurityEvent::SimulationAlert {
@@ -141,6 +159,11 @@ async fn run_standalone_audit(
                         if attack_path.len() > 5 {
                             println!("      └─ ... and {} more", attack_path.len() - 5);
                         }
+                        
+                        // Notify inline if critical
+                        if let Some(ref n) = notifier {
+                            let _ = n.notify(&event).await;
+                        }
                     }
                     SecurityEvent::Pass { check_name, .. } => {
                         println!("    ✅ {} — all clear", check_name);
@@ -150,9 +173,13 @@ async fn run_standalone_audit(
                 report.add_event(&event);
             }
             Err(e) => {
-                eprintln!("    ❌ {} failed: {}", auditor_instance.name(), e);
+                eprintln!("    ❌ {} failed: {}", name, e);
             }
         }
+    }
+    
+    for handle in join_handles {
+        let _ = handle.await;
     }
 
     println!("────────────────────────────────────────────");
@@ -219,11 +246,11 @@ async fn run_grpc_mode() -> Result<(), Box<dyn std::error::Error>> {
     
     // Retry loop for connection
     let mut client = loop {
-        let ca_cert_pem = include_str!("../../certs/ca.crt");
-        let ca_cert = Certificate::from_pem(ca_cert_pem);
-        let client_cert = include_str!("../../certs/client.crt");
-        let client_key = include_str!("../../certs/client.key");
-        let client_identity = Identity::from_pem(client_cert, client_key);
+        let ca_cert_pem = std::env::var("NULLSTRIKE_CA_CERT").unwrap_or_else(|_| include_str!("../../certs/ca.crt").to_string());
+        let ca_cert = Certificate::from_pem(&ca_cert_pem);
+        let client_cert = std::env::var("NULLSTRIKE_CLIENT_CERT").unwrap_or_else(|_| include_str!("../../certs/client.crt").to_string());
+        let client_key = std::env::var("NULLSTRIKE_CLIENT_KEY").unwrap_or_else(|_| include_str!("../../certs/client.key").to_string());
+        let client_identity = Identity::from_pem(&client_cert, &client_key);
 
         let tls = ClientTlsConfig::new()
             .domain_name("127.0.0.1")

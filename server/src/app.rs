@@ -24,6 +24,8 @@ pub struct AppState {
     #[serde(skip)]
     pub should_quit: bool,
     #[serde(skip)]
+    pub selected_tab: usize,
+    #[serde(skip)]
     pub current_sec_checks: u64,
     /// The in-memory attack graph — updated live as results stream in
     #[serde(skip)]
@@ -52,6 +54,7 @@ impl AppState {
             completed_checks: 0,
             checks_per_second: vec![0; 100],
             should_quit: false,
+            selected_tab: 0,
             current_sec_checks: 0,
             attack_graph,
             db,

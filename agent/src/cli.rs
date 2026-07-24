@@ -26,6 +26,10 @@ pub enum Commands {
         /// Output JSON report path (default: nullstrike_report.json)
         #[arg(short, long, default_value = "nullstrike_report.json")]
         output: String,
+
+        /// Engine profile to restrict resource usage
+        #[arg(long, default_value = "full", env = "NULLSTRIKE_PROFILE")]
+        profile: EngineProfile,
     },
 
     /// Generate or view a JSON report from a previous scan
@@ -56,4 +60,14 @@ pub enum Commands {
 
     /// Connect to the gRPC orchestrator (default mode if no subcommand given)
     Connect,
+}
+
+#[derive(clap::ValueEnum, Clone, Debug, Default, PartialEq, Eq)]
+pub enum EngineProfile {
+    Minimal,
+    HostOnly,
+    WebDast,
+    K8sCluster,
+    #[default]
+    Full,
 }

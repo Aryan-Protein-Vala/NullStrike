@@ -58,11 +58,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     };
     
     tokio::spawn(async move {
-        let cert = include_str!("../../certs/server.crt");
-        let key = include_str!("../../certs/server.key");
-        let server_identity = Identity::from_pem(cert, key);
-        let ca_cert_pem = include_str!("../../certs/ca.crt");
-        let client_ca_cert = Certificate::from_pem(ca_cert_pem);
+        let cert = std::env::var("NULLSTRIKE_SERVER_CERT").unwrap_or_else(|_| include_str!("../../certs/server.crt").to_string());
+        let key = std::env::var("NULLSTRIKE_SERVER_KEY").unwrap_or_else(|_| include_str!("../../certs/server.key").to_string());
+        let server_identity = Identity::from_pem(&cert, &key);
+        let ca_cert_pem = std::env::var("NULLSTRIKE_CA_CERT").unwrap_or_else(|_| include_str!("../../certs/ca.crt").to_string());
+        let client_ca_cert = Certificate::from_pem(&ca_cert_pem);
 
         let tls_config = ServerTlsConfig::new()
             .identity(server_identity)
@@ -97,6 +97,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             KeyCode::Char('q') | KeyCode::Esc => {
                                 app.should_quit = true;
                             },
+                            KeyCode::Char('1') | KeyCode::F(1) => app.selected_tab = 0,
+                            KeyCode::Char('2') | KeyCode::F(2) => app.selected_tab = 1,
+                            KeyCode::Char('3') | KeyCode::F(3) => app.selected_tab = 2,
+                            KeyCode::Char('4') | KeyCode::F(4) => app.selected_tab = 3,
+                            KeyCode::Char('5') | KeyCode::F(5) => app.selected_tab = 4,
                             _ => {}
                         }
                     }

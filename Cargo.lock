@@ -2655,6 +2655,7 @@ dependencies = [
  "chrono",
  "clap",
  "hostname",
+ "hyper 0.14.32",
  "lettre",
  "mlua",
  "prost",

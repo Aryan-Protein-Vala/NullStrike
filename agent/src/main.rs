@@ -28,6 +28,11 @@ mod poc_reporter;
 mod sqli_symptom_detector;
 mod graphql_introspector;
 mod headless_dom_analyzer;
+mod temporal_sqli_observable;
+mod header_integrity_checker;
+mod json_schema_inspector;
+mod redirect_topology_mapper;
+mod canary_reflection_validator;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

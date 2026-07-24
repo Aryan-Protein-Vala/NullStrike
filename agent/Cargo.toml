@@ -33,3 +33,6 @@ chromiumoxide = { version = "0.5.7", features = ["tokio-runtime"] }
 [build-dependencies]
 protoc-bin-vendored = "3.2.0"
 tonic-build = "0.10"
+
+[dev-dependencies]
+hyper = { version = "0.14", features = ["full"] }

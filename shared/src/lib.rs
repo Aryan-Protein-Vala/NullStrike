@@ -4,6 +4,21 @@ pub mod pb {
 
 use serde::{Deserialize, Serialize};
 
+pub mod agent_audit {
+    use super::*;
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct Finding {
+        pub severity: Severity,
+        pub timestamp: String,
+        pub target_ip: String,
+        pub probe_type: String,
+        pub observation_score: f64,
+        pub details: String,
+        pub attack_path: Vec<String>,
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Playbook {
     pub name: String,
@@ -45,7 +60,7 @@ pub enum CheckType {
     FullAudit,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Severity {
     Critical,
     High,
